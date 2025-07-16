@@ -56,13 +56,17 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.6.3</version>
                 <configuration>
-                    <reportOutputDirectory>${project.basedir}/docs</reportOutputDirectory>
-                    <destDir>.</destDir>
-                    <outputDirectory>${project.basedir}/docs</outputDirectory>
+                    <reportOutputDirectory>${project.basedir}/target/site/apidocs</reportOutputDirectory>
+                    <destDir>apidocs</destDir>
                     <doclint>reference,syntax</doclint>
+                    <show>public</show>
+                    <nohelp>true</nohelp>
+                    <windowtitle>${project.name} ${project.version} API</windowtitle>
+                    <doctitle>${project.name} ${project.version} API</doctitle>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>attach-javadocs</id>
                         <phase>package</phase>
                         <goals>
                             <goal>javadoc</goal>
