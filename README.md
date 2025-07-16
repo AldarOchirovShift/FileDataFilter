@@ -11,7 +11,7 @@ Application for file processing with statistics support.
 
 2. Run with arguments:
 ```sh
-   java -jar util.jar (-s | -f) [-a] [-o <path>] [-p <prefix>] <input_files>...
+   java -jar target/file-data-filter-1.0-SNAPSHOT-jar-with-dependencies.jar (-s | -f) [-a] [-o <path>] [-p <prefix>] <input_files>...
 ```
 
 ### Available options:
@@ -37,5 +37,5 @@ Application for file processing with statistics support.
 
 Process files with short statistics:
 ```sh
-java -jar target/util.jar -s -o ./output input1.txt input2.txt
+java -jar target/file-data-filter-1.0-SNAPSHOT-jar-with-dependencies.jar -s -o ./output input1.txt input2.txt
 ```
