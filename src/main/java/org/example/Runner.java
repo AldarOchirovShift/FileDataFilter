@@ -2,8 +2,12 @@ package org.example;
 
 import org.example.cli.CommandLineArgsParser;
 import org.example.config.AppConfigBuilder;
+import org.example.service.FileProcessor;
+import org.example.service.PathBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class Runner {
     private final static Logger LOGGER = LoggerFactory.getLogger(Runner.class);
@@ -18,8 +22,15 @@ public class Runner {
 
             LOGGER.info("Application config: {}", config);
 
+            var pathBuilder = new PathBuilder();
+            var fileProcessor = new FileProcessor(pathBuilder);
+            var fileData = fileProcessor.processFile(config.getInputFiles().getFirst(), "");
+            LOGGER.info("fileData: {}", fileData);
         } catch (IllegalArgumentException e) {
             LOGGER.error("Configuration error: {}", e.getMessage());
+            System.exit(1);
+        } catch (IOException e) {
+            LOGGER.error("Process error: {}", e.getMessage());
             System.exit(1);
         }
     }
