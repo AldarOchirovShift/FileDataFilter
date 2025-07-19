@@ -48,7 +48,6 @@ class FileProcessorTest {
         inOrder.verify(fileWriter).addFloat(Double.NEGATIVE_INFINITY);
         inOrder.verify(fileWriter).addInteger(1000L);
         inOrder.verify(fileWriter).addString("plain text");
-        inOrder.verify(fileWriter).close();
 
         verify(fileWriter, never()).addString("");
     }
@@ -63,7 +62,6 @@ class FileProcessorTest {
         verify(fileWriter, never()).addInteger(anyLong());
         verify(fileWriter, never()).addFloat(anyDouble());
         verify(fileWriter, never()).addString(anyString());
-        verify(fileWriter).close();
     }
 
     @Test
@@ -74,7 +72,6 @@ class FileProcessorTest {
                 processor.processFile("missing.txt"));
 
         verify(fileWriter, never()).addInteger(anyLong());
-        verify(fileWriter, never()).close();
     }
 
     @Test
@@ -92,7 +89,6 @@ class FileProcessorTest {
         verify(fileWriter).addFloat(1.23);
         verify(fileWriter).addFloat(123000.0);
         verify(fileWriter).addFloat(Double.NaN);
-        verify(fileWriter).close();
     }
 
     @Test
@@ -108,7 +104,6 @@ class FileProcessorTest {
         processor.processFile("large.txt");
 
         verify(fileWriter, times(10000)).addInteger(anyLong());
-        verify(fileWriter).close();
     }
 
     @Test
@@ -128,6 +123,5 @@ class FileProcessorTest {
         verify(fileWriter).addInteger(Long.MIN_VALUE);
         verify(fileWriter).addFloat(Double.MAX_VALUE);
         verify(fileWriter).addFloat(Double.MIN_VALUE);
-        verify(fileWriter).close();
     }
 }

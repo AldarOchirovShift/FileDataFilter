@@ -14,6 +14,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * A concurrent file writer that asynchronously writes different data types to separate files.
  * <p>
+ * Implements {@link AutoCloseable} and is designed to be used with try-with-resources:
+ * <pre>{@code
+ * try (FileWriter writer = new FileWriter(...)) {
+ *     // work with writer
+ * }
+ * }</pre>
+ * <p>
  * This class provides thread-safe operations for writing three types of data:
  * <ul>
  *   <li>Long integers - written to integers.txt</li>
@@ -37,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @see DataBatch
  * @see PathBuilder
  */
-public class FileWriter {
+public class FileWriter implements AutoCloseable {
     /** Default filename for integer values */
     private static final String OUTPUT_INTEGERS_FILENAME = "integers.txt";
     /** Default filename for floating-point values */
@@ -112,9 +119,13 @@ public class FileWriter {
     /**
      * Closes the writer and releases all resources.
      * <p>
+     * Automatically invoked when used in a try-with-resources block.
      * Flushes any remaining data and shuts down all executors.
      * After closing, attempts to add new data will throw IllegalStateException.
+     *
+     * @implNote This method is thread-safe and idempotent (multiple calls have no additional effect).
      */
+    @Override
     public void close() {
         if (integerBatch.isNotEmpty()) {
             flushIntegers();

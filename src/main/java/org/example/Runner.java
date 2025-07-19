@@ -24,14 +24,19 @@ public class Runner {
             LOGGER.info("Application config: {}", config);
 
             var pathBuilder = new PathBuilder();
-            var fileWriter = new FileWriter(pathBuilder, config.getOutputPath(), config.getFilePrefix(), config.isAppendMode());
-            var fileProcessor = new FileProcessor(pathBuilder, fileWriter);
-            fileProcessor.processFile(config.getInputFiles().getFirst());
+            try (var fileWriter = new FileWriter(pathBuilder, config.getOutputPath(), config.getFilePrefix(), config.isAppendMode())) {
+                var fileProcessor = new FileProcessor(pathBuilder, fileWriter);
+                for (var inputFile : config.getInputFiles()) {
+                    try {
+                        LOGGER.info("Processing file: {}", inputFile);
+                        fileProcessor.processFile(inputFile);
+                    } catch (IOException e) {
+                        LOGGER.error("Failed to process file {}: {}", inputFile, e.getMessage());
+                    }
+                }
+            }
         } catch (IllegalArgumentException e) {
             LOGGER.error("Configuration error: {}", e.getMessage());
-            System.exit(1);
-        } catch (IOException e) {
-            LOGGER.error("Process error: {}", e.getMessage());
             System.exit(1);
         }
     }

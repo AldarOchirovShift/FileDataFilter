@@ -42,6 +42,9 @@ public class FileProcessor {
                     "^NaN$",
             Pattern.CASE_INSENSITIVE
     );
+    private static final String MAX_LONG_STR = Long.toString(Long.MAX_VALUE);
+    private static final String MIN_LONG_STR = Long.toString(Long.MIN_VALUE);
+
     private final PathBuilder pathBuilder;
     private final FileWriter fileWriter;
 
@@ -70,8 +73,6 @@ public class FileProcessor {
                 processLine(line.trim());
             }
         }
-
-        fileWriter.close();
     }
 
     /**
@@ -92,23 +93,76 @@ public class FileProcessor {
     }
 
     /**
-     * Checks if the string represents a valid integer.
+     * Checks if a string is a valid long integer with optional underscores.
+     * Valid examples: "123", "-456", "1_000_000".
+     * Rejects: null, empty strings, numbers outside long range, and malformed formats.
      *
-     * @param s the string to check
-     * @return true if the string matches integer pattern
+     * @param s String to check (may be null)
+     * @return true if parsable as long with correct formatting
      */
     private boolean isInteger(String s) {
-        return INTEGER_PATTERN.matcher(s).matches();
+        if (s == null || s.isEmpty()) {
+            return false;
+        }
+
+        if (!INTEGER_PATTERN.matcher(s).matches()) {
+            return false;
+        }
+
+        var cleanNum = s.replace("_", "");
+        var isNegative = s.startsWith("-");
+        var maxLength = isNegative ? MIN_LONG_STR.length() : MAX_LONG_STR.length();
+
+        if (cleanNum.length() > maxLength) {
+            return false;
+        }
+
+        if (cleanNum.length() == maxLength) {
+            return isNegative
+                    ? cleanNum.compareTo(MIN_LONG_STR) >= 0
+                    : cleanNum.compareTo(MAX_LONG_STR) <= 0;
+        }
+
+
+        return true;
     }
 
     /**
-     * Checks if the string represents a valid floating-point number.
+     * Checks if a string is a valid floating-point number within Java's Double range.
      *
-     * @param s the string to check
-     * @return true if the string matches float pattern
+     * <p><b>Supported formats:</b>
+     * <ul>
+     *   <li>Regular decimals: {@code "3.14"}, {@code "-0,001"}</li>
+     *   <li>Scientific notation: {@code "1.23e-10"}, {@code "1,23E+20"}</li>
+     *   <li><b>Special values</b>:
+     *     {@code "Infinity"}, {@code "-Infinity"}, {@code "NaN"}</li>
+     * </ul>
+     *
+     * <p><b>Rejects:</b>
+     * <ul>
+     *   <li>Numbers that overflow to Infinity (e.g. {@code "1.8e309"})</li>
+     *   <li>Malformed numbers (e.g. {@code "1.2.3"}, {@code "1e"})</li>
+     *   <li>{@code null} or empty strings</li>
+     * </ul>
+     *
+     * @param s the string to check (may be null)
+     * @return true if the string represents a valid double number
      */
     private boolean isFloat(String s) {
-        return FLOAT_PATTERN.matcher(s).matches();
+        if (s == null || !FLOAT_PATTERN.matcher(s).matches()) {
+            return false;
+        }
+
+        if (s.equalsIgnoreCase("NaN") || s.equalsIgnoreCase("Infinity")) {
+            return true;
+        }
+
+        try {
+            var d = Double.parseDouble(s.replace(',', '.'));
+            return !Double.isInfinite(d) || s.equalsIgnoreCase("-Infinity");
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     /**
