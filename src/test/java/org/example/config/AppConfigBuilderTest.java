@@ -5,7 +5,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -58,7 +57,7 @@ public class AppConfigBuilderTest {
         args.setInputFiles(List.of("in.txt"));
 
         var config = builder.buildFromRaw(args);
-        assertEquals(Paths.get("custom/path"), config.getOutputPath());
+        assertEquals("custom/path", config.getOutputPath());
     }
 
     @Test
@@ -68,7 +67,7 @@ public class AppConfigBuilderTest {
         args.setInputFiles(List.of("in.txt"));
 
         var config = builder.buildFromRaw(args);
-        assertEquals(Paths.get("."), config.getOutputPath());
+        assertEquals("", config.getOutputPath());
     }
 
     @Test

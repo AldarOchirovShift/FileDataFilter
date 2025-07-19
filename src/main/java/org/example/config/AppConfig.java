@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -56,7 +55,7 @@ public class AppConfig {
      * <p>
      * Defaults to current directory if not specified in command-line arguments.
      */
-    private final Path outputPath;
+    private final String outputPath;
 
     /**
      * Prefix to prepend to generated filenames.

@@ -6,12 +6,12 @@ Application for file processing with statistics support.
 
 1. Build with Maven:
 ```sh
-   mvn clean package
+mvn clean package
 ```
 
 2. Run with arguments:
 ```sh
-   java -jar target/file-data-filter-1.0-SNAPSHOT-jar-with-dependencies.jar (-s | -f) [-a] [-o <path>] [-p <prefix>] <input_files>...
+java -jar target/file-data-filter-1.0-SNAPSHOT-jar-with-dependencies.jar (-s | -f) [-a] [-o <path>] [-p <prefix>] <input_files>...
 ```
 
 ### Available options:

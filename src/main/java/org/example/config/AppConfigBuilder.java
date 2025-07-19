@@ -1,15 +1,12 @@
 package org.example.config;
 
-import java.nio.file.Paths;
-
 /**
  * A builder class that converts {@link RawCommandLineArgs} into a validated {@link AppConfig}.
  * <p>
  * This class performs the following operations:
  * <ul>
  *   <li>Validates raw command-line arguments (ensures no conflicting options, checks required fields)</li>
- *   <li>Sets default values for optional parameters (output path = current directory, file prefix = empty string)</li>
- *   <li>Converts string paths to {@link java.nio.file.Path} objects</li>
+ *   <li>Sets default values for optional parameters (output path = empty string, file prefix = empty string)</li>
  *   <li>Constructs an immutable {@link AppConfig} instance</li>
  * </ul>
  *
@@ -28,7 +25,7 @@ public class AppConfigBuilder {
      * <p>
      * Performs validation and applies default values where necessary:
      * <ul>
-     *   <li>If no output path is specified, uses the current directory ({@code "."})</li>
+     *   <li>If no output path is specified, uses an empty string</li>
      *   <li>If no file prefix is specified, uses an empty string</li>
      * </ul>
      *
@@ -50,7 +47,7 @@ public class AppConfigBuilder {
                 .shortStats(shortStats)
                 .fullStats(fullStats)
                 .appendMode(raw.isAppendMode())
-                .outputPath(raw.getOutputPath() != null ? Paths.get(raw.getOutputPath()) : Paths.get("."))
+                .outputPath(raw.getOutputPath() != null ? raw.getOutputPath() : "")
                 .filePrefix(raw.getFilePrefix() != null ? raw.getFilePrefix() : "")
                 .inputFiles(raw.getInputFiles())
                 .build();
