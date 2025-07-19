@@ -122,8 +122,6 @@ public class FileWriter implements AutoCloseable {
      * Automatically invoked when used in a try-with-resources block.
      * Flushes any remaining data and shuts down all executors.
      * After closing, attempts to add new data will throw IllegalStateException.
-     *
-     * @implNote This method is thread-safe and idempotent (multiple calls have no additional effect).
      */
     @Override
     public void close() {
