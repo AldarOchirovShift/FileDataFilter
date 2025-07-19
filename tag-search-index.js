@@ -1,1 +1,1 @@
-tagSearchIndex = [];updateSearchResults();
+tagSearchIndex = [{"l":"Typical Usage","h":"class org.example.service.PathBuilder","d":"Section","u":"org/example/service/PathBuilder.html#typical-usage-heading"}];updateSearchResults();
