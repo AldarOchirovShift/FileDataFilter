@@ -1,1 +1,1 @@
-tagSearchIndex = [{"l":"Typical Usage","h":"class org.example.service.PathBuilder","d":"Section","u":"org/example/service/PathBuilder.html#typical-usage-heading"}];updateSearchResults();
+tagSearchIndex = [{"l":"Serialized Form","h":"","u":"serialized-form.html"},{"l":"Typical Usage","h":"class org.example.service.PathBuilder","d":"Section","u":"org/example/service/PathBuilder.html#typical-usage-heading"}];updateSearchResults();
