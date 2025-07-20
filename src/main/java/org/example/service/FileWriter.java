@@ -1,5 +1,9 @@
 package org.example.service;
 
+import org.example.exception.FileWriteException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -47,21 +51,33 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FileWriter implements AutoCloseable {
     /** Default filename for integer values */
     private static final String OUTPUT_INTEGERS_FILENAME = "integers.txt";
+
     /** Default filename for floating-point values */
     private static final String OUTPUT_FLOATS_FILENAME = "floats.txt";
+
     /** Default filename for string values */
     private static final String OUTPUT_STRINGS_FILENAME = "strings.txt";
 
+    /** Default filename for integer values (modified by prefix if specified) */
     private final DataBatch<Long> integerBatch = new DataBatch<>();
+
+    /** Default filename for floating-point values (modified by prefix if specified) */
     private final DataBatch<Double> floatBatch = new DataBatch<>();
+
+    /** Default filename for string values (modified by prefix if specified) */
     private final DataBatch<String> stringBatch = new DataBatch<>();
 
     private final Map<String, ExecutorService> fileExecutors;
+    private final static Logger LOGGER = LoggerFactory.getLogger(FileWriter.class);
 
     private final Path outputDirectory;
     private final String filePrefix;
     private final boolean appendMode;
 
+    /**
+     * Tracks first write operation per file for TRUNCATE_EXISTING mode.
+     * Key: File path, Value: Atomic flag (true = requires truncation)
+     */
     private final ConcurrentHashMap<Path, AtomicBoolean> firstFlushPerFile = new ConcurrentHashMap<>();
 
     /**
@@ -71,7 +87,7 @@ public class FileWriter implements AutoCloseable {
      * @param outputDirectory the target directory for output files
      * @param filePrefix the prefix to prepend to filenames
      * @param appendMode if true, appends to existing files; if false, overwrites files
-     * @throws IllegalArgumentException if outputDirectory or filePrefix are null
+     * @throws FileWriteException if outputDirectory or filePrefix are null
      */
     public FileWriter(PathBuilder pathBuilder, String outputDirectory, String filePrefix, boolean appendMode) {
         this.outputDirectory = pathBuilder.buildOutput(outputDirectory);
@@ -119,9 +135,13 @@ public class FileWriter implements AutoCloseable {
     /**
      * Closes the writer and releases all resources.
      * <p>
-     * Automatically invoked when used in a try-with-resources block.
-     * Flushes any remaining data and shuts down all executors.
-     * After closing, attempts to add new data will throw IllegalStateException.
+     * <b>Behavior:</b>
+     * <ul>
+     *   <li>Flushes all remaining data batches</li>
+     *   <li>Shuts down executors with 1-minute timeout</li>
+     *   <li>Throws {@link FileWriteException} if flushing fails</li>
+     * </ul>
+     * After closing, attempts to add new data will throw {@link IllegalStateException}.
      */
     @Override
     public void close() {
@@ -162,31 +182,61 @@ public class FileWriter implements AutoCloseable {
         }
     }
 
+    /**
+     * Forces immediate write of all buffered integers.
+     * <p>
+     * Used automatically when batch is full or writer is closed.
+     * @throws FileWriteException if write operation fails
+     */
     private void flushIntegers() {
         flush(integerBatch, OUTPUT_INTEGERS_FILENAME);
     }
 
+    /**
+     * Forces immediate write of all buffered floats.
+     * <p>
+     * Used automatically when batch is full or writer is closed.
+     * @throws FileWriteException if write operation fails
+     */
     private void flushFloats() {
         flush(floatBatch, OUTPUT_FLOATS_FILENAME);
     }
 
+    /**
+     * Forces immediate write of all buffered strings.
+     * <p>
+     * Used automatically when batch is full or writer is closed.
+     * @throws FileWriteException if write operation fails
+     */
     private void flushStrings() {
         flush(stringBatch, OUTPUT_STRINGS_FILENAME);
     }
 
+    /**
+     * Internal batch flush operation.
+     * @param batch Data to write
+     * @param filename Target filename (without prefix/path)
+     */
     private <T> void flush(DataBatch<T> batch, String filename) {
         var batchToWrite = batch.getAndClear();
         var filePath = outputDirectory.resolve(filePrefix + filename);
         fileExecutors.get(filename).submit(() -> writeBatchToFile(filePath, batchToWrite));
     }
 
+    /**
+     * Performs actual file write operation.
+     * @param filePath Full target file path
+     * @param batch Data batch to write
+     * @throws FileWriteException if directory creation or file write fails
+     */
     private <T> void writeBatchToFile(Path filePath, List<T> batch) {
         try {
             var parentDir = filePath.getParent();
             if (parentDir != null) {
                 Files.createDirectories(parentDir);
                 if (!Files.isWritable(parentDir)) {
-                    throw new IOException("No write permissions for directory: " + parentDir);
+                    LOGGER.error("No write permissions for {}", filePath);
+                    throw new FileWriteException("No write permissions for directory", parentDir.toString());
                 }
             }
 
@@ -199,10 +249,16 @@ public class FileWriter implements AutoCloseable {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to write to file: " + filePath, e);
+            LOGGER.error("Failed to write to file {}", filePath);
+            throw new FileWriteException("Failed to write to file", filePath.toString(), e);
         }
     }
 
+    /**
+     * Determines file open options based on write mode.
+     * @param filePath Target file path
+     * @return Array of StandardOpenOption values
+     */
     private StandardOpenOption[] getOptions(Path filePath) {
         StandardOpenOption[] options;
         if (appendMode) {

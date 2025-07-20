@@ -1,5 +1,9 @@
 package org.example.service;
 
+import org.example.exception.NumberParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.regex.Pattern;
@@ -44,6 +48,7 @@ public class FileProcessor {
     );
     private static final String MAX_LONG_STR = Long.toString(Long.MAX_VALUE);
     private static final String MIN_LONG_STR = Long.toString(Long.MIN_VALUE);
+    private final static Logger LOGGER = LoggerFactory.getLogger(FileProcessor.class);
 
     private final PathBuilder pathBuilder;
     private final FileWriter fileWriter;
@@ -64,6 +69,7 @@ public class FileProcessor {
      *
      * @param inputFile path to the input file
      * @throws IOException if an I/O error occurs while reading the file
+     * @throws NumberParseException if the string does not contain a parsable number
      */
     public void processFile(String inputFile) throws IOException {
         var inputPath = pathBuilder.buildInput(inputFile);
@@ -83,12 +89,16 @@ public class FileProcessor {
     private void processLine(String line) {
         if (line.isEmpty()) return;
 
-        if (isInteger(line)) {
-            fileWriter.addInteger(parseLong(line));
-        } else if (isFloat(line)) {
-            fileWriter.addFloat(parseDouble(line));
-        } else {
-            fileWriter.addString(line);
+        try {
+            if (isInteger(line)) {
+                fileWriter.addInteger(parseLong(line));
+            } else if (isFloat(line)) {
+                fileWriter.addFloat(parseDouble(line));
+            } else {
+                fileWriter.addString(line);
+            }
+        } catch (NumberParseException e) {
+            LOGGER.warn("Skipping malformed number in line: '{}'", line);
         }
     }
 
@@ -122,7 +132,6 @@ public class FileProcessor {
                     ? cleanNum.compareTo(MIN_LONG_STR) >= 0
                     : cleanNum.compareTo(MAX_LONG_STR) <= 0;
         }
-
 
         return true;
     }
@@ -170,9 +179,15 @@ public class FileProcessor {
      *
      * @param s the string to parse
      * @return parsed long value
+     * @throws NumberParseException if the string cannot be parsed as a valid long integer
+     *                             (contains the original problematic value)
      */
     private long parseLong(String s) {
-        return Long.parseLong(s.replace("_", ""));
+        try {
+            return Long.parseLong(s.replace("_", ""));
+        } catch (NumberFormatException e) {
+            throw new NumberParseException("Failed to parse double value", s, e);
+        }
     }
 
     /**
@@ -181,16 +196,22 @@ public class FileProcessor {
      *
      * @param s the string to parse
      * @return parsed double value
+     * @throws NumberParseException if the string cannot be parsed as a valid double
+     *                             (contains the original problematic value)
      */
     private double parseDouble(String s) {
-        s = s.replace(",", ".");
-        if (s.equalsIgnoreCase("Infinity")) {
-            return Double.POSITIVE_INFINITY;
-        } else if (s.equalsIgnoreCase("-Infinity")) {
-            return Double.NEGATIVE_INFINITY;
-        } else if (s.equalsIgnoreCase("NaN")) {
-            return Double.NaN;
+        try {
+            s = s.replace(",", ".");
+            if (s.equalsIgnoreCase("Infinity")) {
+                return Double.POSITIVE_INFINITY;
+            } else if (s.equalsIgnoreCase("-Infinity")) {
+                return Double.NEGATIVE_INFINITY;
+            } else if (s.equalsIgnoreCase("NaN")) {
+                return Double.NaN;
+            }
+            return Double.parseDouble(s);
+        } catch (NumberFormatException e) {
+            throw new NumberParseException("Failed to parse double value", s, e);
         }
-        return Double.parseDouble(s);
     }
 }

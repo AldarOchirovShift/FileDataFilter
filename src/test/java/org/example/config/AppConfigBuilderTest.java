@@ -1,5 +1,6 @@
 package org.example.config;
 
+import org.example.exception.ConfigurationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -112,20 +113,10 @@ public class AppConfigBuilderTest {
     }
 
     @Test
-    void buildFromRaw_whenBothShortAndFullStats_shouldThrow() {
-        var args = new RawCommandLineArgs();
-        args.setShortStats(true);
-        args.setFullStats(true);
-        args.setInputFiles(List.of("in.txt"));
-
-        assertThrows(IllegalArgumentException.class, () -> builder.buildFromRaw(args));
-    }
-
-    @Test
     void buildFromRaw_whenNoInputFiles_shouldThrow() {
         var args = new RawCommandLineArgs();
         args.setShortStats(true);
 
-        assertThrows(IllegalArgumentException.class, () -> builder.buildFromRaw(args));
+        assertThrows(ConfigurationException.class, () -> builder.buildFromRaw(args));
     }
 }

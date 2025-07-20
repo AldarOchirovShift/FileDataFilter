@@ -1,5 +1,6 @@
 package org.example.cli;
 
+import org.example.exception.ConfigurationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -68,7 +69,7 @@ public class CommandLineArgsParserTest {
 
     @Test
     void parse_whenOutputPathMissing_thenShouldThrow() {
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(new String[]{"-o"}));
+        assertThrows(ConfigurationException.class, () -> parser.parse(new String[]{"-o"}));
     }
 
     @Test
@@ -79,7 +80,7 @@ public class CommandLineArgsParserTest {
 
     @Test
     void parse_whenFilePrefixMissing_thenShouldThrow() {
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(new String[]{"-p"}));
+        assertThrows(ConfigurationException.class, () -> parser.parse(new String[]{"-p"}));
     }
 
     @ParameterizedTest
@@ -102,7 +103,7 @@ public class CommandLineArgsParserTest {
     @ParameterizedTest
     @MethodSource("provideInvalidArgsCases")
     void parse_whenInvalidArgs_thenShouldThrow(String[] args) {
-        assertThrows(IllegalArgumentException.class, () -> parser.parse(args));
+        assertThrows(ConfigurationException.class, () -> parser.parse(args));
     }
 
     private static Stream<Arguments> provideInvalidArgsCases() {

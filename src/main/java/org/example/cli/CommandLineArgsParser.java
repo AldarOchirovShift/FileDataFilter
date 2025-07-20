@@ -1,6 +1,7 @@
 package org.example.cli;
 
 import org.example.config.RawCommandLineArgs;
+import org.example.exception.ConfigurationException;
 
 /**
  * A utility class for parsing command line arguments into a structured format.
@@ -29,12 +30,12 @@ public class CommandLineArgsParser {
      *
      * @param args the command line arguments to parse
      * @return a {@link RawCommandLineArgs} object containing all parsed parameters
-     * @throws IllegalArgumentException if:
-     *         <ul>
-     *           <li>An unknown argument is encountered</li>
-     *           <li>The {@code -o} option is not followed by a path</li>
-     *           <li>The {@code -p} option is not followed by a prefix</li>
-     *         </ul>
+     * @throws ConfigurationException if:
+     *                                  <ul>
+     *                                    <li>An unknown argument is encountered</li>
+     *                                    <li>The {@code -o} option is not followed by a path</li>
+     *                                    <li>The {@code -p} option is not followed by a prefix</li>
+     *                                  </ul>
      */
     public RawCommandLineArgs parse(String[] args) {
         var raw = new RawCommandLineArgs();
@@ -54,25 +55,24 @@ public class CommandLineArgsParser {
                 case "-a" -> raw.setAppendMode(true);
                 case "-o" -> {
                     if (i + 1 >= args.length) {
-                        throw new IllegalArgumentException("Path must be specified after -o");
+                        throw new ConfigurationException("Path must be specified after -o");
                     }
                     raw.setOutputPath(args[++i]);
                 }
                 case "-p" -> {
                     if (i + 1 >= args.length) {
-                        throw new IllegalArgumentException("Prefix must be specified after -p");
+                        throw new ConfigurationException("Prefix must be specified after -p");
                     }
                     raw.setFilePrefix(args[++i]);
                 }
                 default -> {
                     if (arg.startsWith("-")) {
-                        throw new IllegalArgumentException("Unknown argument: " + arg);
+                        throw new ConfigurationException("Unknown argument: " + arg);
                     }
                     raw.getInputFiles().add(arg);
                 }
             }
         }
-
         return raw;
     }
 }

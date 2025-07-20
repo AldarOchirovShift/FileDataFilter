@@ -1,5 +1,7 @@
 package org.example.config;
 
+import org.example.exception.ConfigurationException;
+
 /**
  * A builder class that converts {@link RawCommandLineArgs} into a validated {@link AppConfig}.
  * <p>
@@ -12,7 +14,6 @@ package org.example.config;
  *
  * <p><b>Validation rules:</b></p>
  * <ul>
- *   <li>Short stats ({@code -s}) and full stats ({@code -f}) cannot be enabled simultaneously</li>
  *   <li>At least one input file must be specified</li>
  * </ul>
  *
@@ -31,14 +32,15 @@ public class AppConfigBuilder {
      *
      * @param raw the raw command-line arguments to process
      * @return a fully configured and validated {@link AppConfig}
-     * @throws IllegalArgumentException if:
+     * @throws ConfigurationException if:
      * <ul>
-     *   <li>Both {@code -s} and {@code -f} flags are set</li>
      *   <li>No input files are provided</li>
      * </ul>
      */
     public AppConfig buildFromRaw(RawCommandLineArgs raw) {
-        validate(raw);
+        if (raw.getInputFiles().isEmpty()) {
+            throw new ConfigurationException("No input files specified");
+        }
 
         var shortStats = !raw.isFullStats();
         var fullStats = raw.isFullStats();
@@ -51,20 +53,5 @@ public class AppConfigBuilder {
                 .filePrefix(raw.getFilePrefix() != null ? raw.getFilePrefix() : "")
                 .inputFiles(raw.getInputFiles())
                 .build();
-    }
-
-    /**
-     * Validates the raw command-line arguments.
-     *
-     * @param raw the arguments to validate
-     * @throws IllegalArgumentException if arguments are invalid (see {@link #buildFromRaw})
-     */
-    private void validate(RawCommandLineArgs raw) {
-        if (raw.isShortStats() && raw.isFullStats()) {
-            throw new IllegalArgumentException("Cannot use both -s and -f simultaneously");
-        }
-        if (raw.getInputFiles().isEmpty()) {
-            throw new IllegalArgumentException("No input files specified");
-        }
     }
 }
