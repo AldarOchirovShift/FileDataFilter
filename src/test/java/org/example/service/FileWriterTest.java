@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.statistics.CompositeStatistics;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,10 +21,12 @@ public class FileWriterTest {
 
     private PathBuilder pathBuilder;
     private FileWriter fileWriter;
+    private CompositeStatistics statistics;
 
     @BeforeEach
     void setUp() {
         pathBuilder = new PathBuilder();
+        statistics = new CompositeStatistics(true);
 
         ExecutorService mockExecutor = mock(ExecutorService.class);
         when(mockExecutor.submit(any(Runnable.class))).thenAnswer(invocation -> {
@@ -38,7 +41,7 @@ public class FileWriterTest {
                 "strings.txt", mockExecutor
         );
 
-        fileWriter = new FileWriter(pathBuilder, tempDir.toString(), "test_", false) {
+        fileWriter = new FileWriter(pathBuilder, tempDir.toString(), "test_", false, statistics) {
             @Override
             protected Map<String, ExecutorService> createFileExecutors() {
                 return mockExecutors;
@@ -89,7 +92,7 @@ public class FileWriterTest {
         var prefix = "app_";
         var outputFile = tempDir.resolve(prefix + "integers.txt");
 
-        var writer1 = new FileWriter(pathBuilder, dir, prefix, true);
+        var writer1 = new FileWriter(pathBuilder, dir, prefix, true, statistics);
         writer1.addInteger(1);
         writer1.close();
 
@@ -101,7 +104,7 @@ public class FileWriterTest {
         assertTrue(Files.exists(outputFile), "File should exist after first write");
         assertEquals(List.of("1"), Files.readAllLines(outputFile));
 
-        var writer2 = new FileWriter(pathBuilder, dir, prefix, true);
+        var writer2 = new FileWriter(pathBuilder, dir, prefix, true, statistics);
         writer2.addInteger(2);
         writer2.close();
 

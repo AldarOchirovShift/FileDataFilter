@@ -1,6 +1,7 @@
 package org.example.service;
 
 import org.example.exception.FileWriteException;
+import org.example.statistics.CompositeStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +70,7 @@ public class FileWriter implements AutoCloseable {
 
     private final Map<String, ExecutorService> fileExecutors;
     private final static Logger LOGGER = LoggerFactory.getLogger(FileWriter.class);
+    private final CompositeStatistics statistics;
 
     private final Path outputDirectory;
     private final String filePrefix;
@@ -87,13 +89,15 @@ public class FileWriter implements AutoCloseable {
      * @param outputDirectory the target directory for output files
      * @param filePrefix the prefix to prepend to filenames
      * @param appendMode if true, appends to existing files; if false, overwrites files
+     * @param statistics to collect statistics
      * @throws FileWriteException if outputDirectory or filePrefix are null
      */
-    public FileWriter(PathBuilder pathBuilder, String outputDirectory, String filePrefix, boolean appendMode) {
+    public FileWriter(PathBuilder pathBuilder, String outputDirectory, String filePrefix, boolean appendMode, CompositeStatistics statistics) {
         this.outputDirectory = pathBuilder.buildOutput(outputDirectory);
         this.filePrefix = filePrefix;
         this.appendMode = appendMode;
         this.fileExecutors = createFileExecutors();
+        this.statistics = statistics;
     }
 
     /**
@@ -106,6 +110,7 @@ public class FileWriter implements AutoCloseable {
      */
     public void addInteger(long value) {
         addValue(value, integerBatch, this::flushIntegers);
+        statistics.addLong(value);
     }
 
     /**
@@ -118,6 +123,7 @@ public class FileWriter implements AutoCloseable {
      */
     public void addFloat(double value) {
         addValue(value, floatBatch, this::flushFloats);
+        statistics.addDouble(value);
     }
 
     /**
@@ -130,6 +136,7 @@ public class FileWriter implements AutoCloseable {
      */
     public void addString(String value) {
         addValue(value, stringBatch, this::flushStrings);
+        statistics.addString(value);
     }
 
     /**

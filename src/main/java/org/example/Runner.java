@@ -8,6 +8,7 @@ import org.example.exception.NumberParseException;
 import org.example.service.FileProcessor;
 import org.example.service.FileWriter;
 import org.example.service.PathBuilder;
+import org.example.statistics.CompositeStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,11 +24,12 @@ public class Runner {
 
             var configBuilder = new AppConfigBuilder();
             var config = configBuilder.buildFromRaw(rawArgs);
+            var statistics = new CompositeStatistics(config.isFullStats());
 
             LOGGER.info("Application config: {}", config);
 
             var pathBuilder = new PathBuilder();
-            try (var fileWriter = new FileWriter(pathBuilder, config.getOutputPath(), config.getFilePrefix(), config.isAppendMode())) {
+            try (var fileWriter = new FileWriter(pathBuilder, config.getOutputPath(), config.getFilePrefix(), config.isAppendMode(), statistics)) {
                 var fileProcessor = new FileProcessor(pathBuilder, fileWriter);
                 for (var inputFile : config.getInputFiles()) {
                     try {
@@ -43,6 +45,7 @@ public class Runner {
                         LOGGER.error("Failed to process file {}: {}", inputFile, e.getMessage());
                     }
                 }
+                LOGGER.info(statistics.getFullStatistics());
             }
         } catch (ConfigurationException e) {
             LOGGER.error("Configuration error: {}", e.getMessage());
@@ -51,5 +54,6 @@ public class Runner {
             LOGGER.error("Unexpected error: {}", e.getMessage(), e);
             System.exit(2);
         }
+        LOGGER.info("Application finished.");
     }
 }
