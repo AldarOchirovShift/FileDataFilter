@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.example"},{"l":"org.example.cli"},{"l":"org.example.config"},{"l":"org.example.exception"},{"l":"org.example.service"},{"l":"org.example.statistics"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.example.cli"},{"l":"org.example.config"},{"l":"org.example.exception"},{"l":"org.example.runner"},{"l":"org.example.service"},{"l":"org.example.statistics"}];updateSearchResults();
