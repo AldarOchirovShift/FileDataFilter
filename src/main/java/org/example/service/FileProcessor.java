@@ -130,7 +130,7 @@ public class FileProcessor {
 
         if (cleanNum.length() == maxLength) {
             return isNegative
-                    ? cleanNum.compareTo(MIN_LONG_STR) >= 0
+                    ? cleanNum.compareTo(MIN_LONG_STR) <= 0
                     : cleanNum.compareTo(MAX_LONG_STR) <= 0;
         }
 
