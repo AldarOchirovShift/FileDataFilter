@@ -3,3 +3,4 @@ org.example.cli
 org.example.config
 org.example.exception
 org.example.service
+org.example.statistics
