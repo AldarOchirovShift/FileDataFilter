@@ -76,13 +76,15 @@ public class StringStatistics extends AbstractStatistics {
      */
     @Override
     public String getStatistics() {
+        var result = new StringBuilder(StatisticsStringConstants.COUNT).append(count);
+
         if (fullStats) {
-            return String.format("Count: %d; Shortest: \"%s\"; Longest: \"%s\"",
-                    count,
-                    shortest != null ? shortest : "N/A",
-                    longest != null ? longest : "N/A");
-        } else {
-            return String.format("Count: %d", count);
+            result.append(StatisticsStringConstants.MIN)
+                    .append(shortest != null ? "\"" + shortest + "\"" : StatisticsStringConstants.NA)
+                    .append(StatisticsStringConstants.MAX)
+                    .append(longest != null ? "\"" + longest + "\"" : StatisticsStringConstants.NA);
         }
+
+        return result.toString();
     }
 }

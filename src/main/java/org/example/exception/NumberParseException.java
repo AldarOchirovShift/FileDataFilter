@@ -19,7 +19,7 @@ public class NumberParseException extends AppException {
     private final String value;
 
     public NumberParseException(String message, String value, Throwable cause) {
-        super(message + " (value: " + value + ")", cause);
+        super(String.format(ExceptionStringConstants.NUMBER_PARSE_TEMPLATE, message, value), cause);
         this.value = value;
     }
 }

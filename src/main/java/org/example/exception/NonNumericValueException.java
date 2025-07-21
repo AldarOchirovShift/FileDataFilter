@@ -16,6 +16,6 @@ public class NonNumericValueException extends AppException {
      * @param actualType the class of the non-numeric value that caused the exception
      */
     public NonNumericValueException(Class<?> actualType) {
-        super("Numeric value required, got " + actualType.getSimpleName());
+        super(ExceptionStringConstants.NUMERIC_VALUE_REQUIRED + actualType.getSimpleName());
     }
 }

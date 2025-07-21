@@ -44,30 +44,30 @@ public class CommandLineArgsParser {
         for (var i = 0; i < args.length; i++) {
             var arg = args[i];
             switch (arg) {
-                case "-s" -> {
+                case CliStringConstants.Options.SHORT_STATS_ARG -> {
                     raw.setShortStats(true);
                     raw.setFullStats(false);
                 }
-                case "-f" -> {
+                case CliStringConstants.Options.FULL_STATS_ARG -> {
                     raw.setShortStats(false);
                     raw.setFullStats(true);
                 }
-                case "-a" -> raw.setAppendMode(true);
-                case "-o" -> {
+                case CliStringConstants.Options.APPEND_MODE_ARG -> raw.setAppendMode(true);
+                case CliStringConstants.Options.OUTPUT_PATH_ARG -> {
                     if (i + 1 >= args.length) {
-                        throw new ConfigurationException("Path must be specified after -o");
+                        throw new ConfigurationException(CliStringConstants.Exceptions.PATH_REQUIRED);
                     }
                     raw.setOutputPath(args[++i]);
                 }
-                case "-p" -> {
+                case CliStringConstants.Options.FILE_PREFIX_ARG -> {
                     if (i + 1 >= args.length) {
-                        throw new ConfigurationException("Prefix must be specified after -p");
+                        throw new ConfigurationException(CliStringConstants.Exceptions.PREFIX_REQUIRED);
                     }
                     raw.setFilePrefix(args[++i]);
                 }
                 default -> {
                     if (arg.startsWith("-")) {
-                        throw new ConfigurationException("Unknown argument: " + arg);
+                        throw new ConfigurationException(CliStringConstants.Exceptions.UNKNOWN_ARG + arg);
                     }
                     raw.getInputFiles().add(arg);
                 }

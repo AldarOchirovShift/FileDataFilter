@@ -24,7 +24,7 @@ public class IOExceptionWithPath extends RuntimeException {
      * @param path the filesystem path where error occurred
      */
     public IOExceptionWithPath(String message, String path) {
-        super(message + " (path: " + path + ")");
+        super(String.format(ExceptionStringConstants.PATH_TEMPLATE, message, path));
         this.path = path;
     }
 
@@ -35,7 +35,7 @@ public class IOExceptionWithPath extends RuntimeException {
      * @param cause the root cause exception
      */
     public IOExceptionWithPath(String message, String path, Throwable cause) {
-        super(message + " (path: " + path + ")", cause);
+        super(String.format(ExceptionStringConstants.PATH_TEMPLATE, message, path), cause);
         this.path = path;
     }
 }

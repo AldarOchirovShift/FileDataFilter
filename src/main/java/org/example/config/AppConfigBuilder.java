@@ -39,7 +39,7 @@ public class AppConfigBuilder {
      */
     public AppConfig buildFromRaw(RawCommandLineArgs raw) {
         if (raw.getInputFiles().isEmpty()) {
-            throw new ConfigurationException("No input files specified");
+            throw new ConfigurationException(ConfigStringConstants.Exceptions.NO_INPUT_FILES);
         }
 
         var shortStats = !raw.isFullStats();
@@ -49,8 +49,12 @@ public class AppConfigBuilder {
                 .shortStats(shortStats)
                 .fullStats(fullStats)
                 .appendMode(raw.isAppendMode())
-                .outputPath(raw.getOutputPath() != null ? raw.getOutputPath() : "")
-                .filePrefix(raw.getFilePrefix() != null ? raw.getFilePrefix() : "")
+                .outputPath(raw.getOutputPath() != null
+                        ? raw.getOutputPath()
+                        : ConfigStringConstants.Options.EMPTY_STRING)
+                .filePrefix(raw.getFilePrefix() != null
+                        ? raw.getFilePrefix()
+                        : ConfigStringConstants.Options.EMPTY_STRING)
                 .inputFiles(raw.getInputFiles())
                 .build();
     }

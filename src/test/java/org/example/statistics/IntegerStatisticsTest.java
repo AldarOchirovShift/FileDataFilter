@@ -27,14 +27,14 @@ public class IntegerStatisticsTest {
         var stats = new IntegerStatistics(true);
         stats.addValue(10);
         stats.addValue(20);
-        var expected = "Count: 2, Min: 10, Max: 20, Sum: 30; Avg: 15,000";
+        var expected = "Count: 2; Min: 10; Max: 20; Sum: 30; Avg: 15,000";
         assertEquals(expected, stats.getStatistics());
     }
 
     @Test
     public void getStatistics_whenFullStatsTrueAndNoData_thenReturnsNAStats() {
         var stats = new IntegerStatistics(true);
-        var expected = "Count: 0, Min: \"N/A\", Max: \"N/A\", Sum: \"N/A\"; Avg: \"N/A\"";
+        var expected = "Count: 0; Min: \"N/A\"; Max: \"N/A\"; Sum: \"N/A\"; Avg: \"N/A\"";
         assertEquals(expected, stats.getStatistics());
     }
 
@@ -43,7 +43,7 @@ public class IntegerStatisticsTest {
         var stats = new IntegerStatistics(true);
         stats.addValue(Long.MAX_VALUE);
         stats.addValue(1);
-        var expected = "Count: 2, Min: 1, Max: 9223372036854775807, Sum: \"N/A\"; Avg: \"N/A\"";
+        var expected = "Count: 2; Min: 1; Max: 9223372036854775807; Sum: \"N/A\"; Avg: \"N/A\"";
         assertEquals(expected, stats.getStatistics());
     }
 

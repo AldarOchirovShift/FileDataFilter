@@ -18,6 +18,6 @@ public class NonStringValueException extends AppException {
      *                   (will be shown in the error message)
      */
     public NonStringValueException(Class<?> actualType) {
-        super("String value required, got " + actualType.getSimpleName());
+        super(ExceptionStringConstants.STRING_VALUE_REQUIRED + actualType.getSimpleName());
     }
 }

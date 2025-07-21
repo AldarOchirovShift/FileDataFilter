@@ -20,21 +20,6 @@ import java.nio.file.Path;
  */
 public class PathBuilder {
     /**
-     * The current user working directory (where the JVM was launched from).
-     */
-    private static final String USER_DIR = System.getProperty("user.dir");
-
-    /**
-     * Default input subdirectory name ("input").
-     */
-    private static final String INPUT_DIR = "input";
-
-    /**
-     * Default output subdirectory name ("output").
-     */
-    private static final String OUTPUT_DIR = "output";
-
-    /**
      * Builds a path for an input file.
      *
      * @param inputPath the input file path (relative or absolute)
@@ -43,7 +28,7 @@ public class PathBuilder {
      * @see #build(String, String)
      */
     public Path buildInput(String inputPath) {
-        return build(INPUT_DIR, inputPath);
+        return build(ServicesStringConstants.PathOptions.INPUT_DIR, inputPath);
     }
 
     /**
@@ -55,7 +40,7 @@ public class PathBuilder {
      * @see #build(String, String)
      */
     public Path buildOutput(String outputPath) {
-        return build(OUTPUT_DIR, outputPath);
+        return build(ServicesStringConstants.PathOptions.OUTPUT_DIR, outputPath);
     }
 
     /**
@@ -69,7 +54,8 @@ public class PathBuilder {
     private Path build(String dirPath, String path) {
         var resultPath = Path.of(path);
         resultPath = !resultPath.isAbsolute()
-                ? Path.of(USER_DIR).resolve(dirPath).resolve(path)
+                ? Path.of(ServicesStringConstants.PathOptions.USER_DIR)
+                .resolve(dirPath).resolve(path)
                 : resultPath;
         return resultPath;
     }

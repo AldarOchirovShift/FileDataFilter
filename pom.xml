@@ -85,7 +85,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>org.example.Runner</mainClass>
+                            <mainClass>org.example.runner.Runner</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

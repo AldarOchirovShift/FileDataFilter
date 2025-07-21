@@ -89,22 +89,22 @@ public class IntegerStatistics extends NumericStatistics {
     @Override
     public String getStatistics() {
         var stats = new StringBuilder();
-        stats.append("Count: ").append(count);
+        stats.append(StatisticsStringConstants.COUNT).append(count);
 
         if (!fullStats) {
             return stats.toString();
         }
 
         var minMaxStats = (count == 0)
-                ? ", Min: \"N/A\", Max: \"N/A\""
-                : ", Min: " + min + ", Max: " + max;
+                ? StatisticsStringConstants.MIN_MAX_NA
+                : StatisticsStringConstants.MIN + min + StatisticsStringConstants.MAX + max;
         stats.append(minMaxStats);
 
         if (count == 0 || sumOverflow) {
-            stats.append(", Sum: \"N/A\"; Avg: \"N/A\"");
+            stats.append(StatisticsStringConstants.SUM_AVG_NA);
         } else {
-            stats.append(", Sum: ").append(sum)
-                    .append("; Avg: ").append(String.format("%.3f", (double) sum / count));
+            stats.append(StatisticsStringConstants.SUM).append(sum)
+                    .append(StatisticsStringConstants.AVG).append(String.format("%.3f", (double) sum / count));
         }
 
         return stats.toString();

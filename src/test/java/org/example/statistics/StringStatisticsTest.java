@@ -44,14 +44,14 @@ public class StringStatisticsTest {
         var stats = new StringStatistics(true);
         stats.addValue("a");
         stats.addValue("bb");
-        var expected = "Count: 2; Shortest: \"a\"; Longest: \"bb\"";
+        var expected = "Count: 2; Min: \"a\"; Max: \"bb\"";
         assertEquals(expected, stats.getStatistics());
     }
 
     @Test
     public void getStatistics_whenFullStatsTrueAndNoData_thenReturnsNAStats() {
         var stats = new StringStatistics(true);
-        var expected = "Count: 0; Shortest: \"N/A\"; Longest: \"N/A\"";
+        var expected = "Count: 0; Min: \"N/A\"; Max: \"N/A\"";
         assertEquals(expected, stats.getStatistics());
     }
 

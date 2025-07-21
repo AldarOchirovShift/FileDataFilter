@@ -72,19 +72,19 @@ public class DoubleStatistics extends NumericStatistics {
      */
     @Override
     public String getStatistics() {
-        var stats = new StringBuilder("Count: ").append(count);
+        var stats = new StringBuilder(StatisticsStringConstants.COUNT).append(count);
 
         if (!fullStats) {
             return stats.toString();
         }
 
         if (count == 0) {
-            stats.append("; Min: \"N/A\"; Max: \"N/A\"; Sum: \"N/A\"; Avg: \"N/A\"");
+            stats.append(StatisticsStringConstants.NA_ALL);
         } else {
-            stats.append("; Min: ").append(String.format("%.3f", min))
-                    .append("; Max: ").append(String.format("%.3f", max))
-                    .append("; Sum: ").append(String.format("%.3f", sum))
-                    .append("; Avg: ").append(String.format("%.3f", sum / count));
+            stats.append(StatisticsStringConstants.MIN).append(String.format("%.3f", min))
+                    .append(StatisticsStringConstants.MAX).append(String.format("%.3f", max))
+                    .append(StatisticsStringConstants.SUM).append(String.format("%.3f", sum))
+                    .append(StatisticsStringConstants.AVG).append(String.format("%.3f", sum / count));
         }
 
         return stats.toString();

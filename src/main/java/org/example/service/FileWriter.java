@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -50,26 +51,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @see PathBuilder
  */
 public class FileWriter implements AutoCloseable {
-    /** Default filename for integer values */
-    private static final String OUTPUT_INTEGERS_FILENAME = "integers.txt";
-
-    /** Default filename for floating-point values */
-    private static final String OUTPUT_FLOATS_FILENAME = "floats.txt";
-
-    /** Default filename for string values */
-    private static final String OUTPUT_STRINGS_FILENAME = "strings.txt";
-
-    /** Default filename for integer values (modified by prefix if specified) */
+    /**
+     * Default filename for integer values (modified by prefix if specified)
+     */
     private final DataBatch<Long> integerBatch = new DataBatch<>();
 
-    /** Default filename for floating-point values (modified by prefix if specified) */
+    /**
+     * Default filename for floating-point values (modified by prefix if specified)
+     */
     private final DataBatch<Double> floatBatch = new DataBatch<>();
 
-    /** Default filename for string values (modified by prefix if specified) */
+    /**
+     * Default filename for string values (modified by prefix if specified)
+     */
     private final DataBatch<String> stringBatch = new DataBatch<>();
 
     private final Map<String, ExecutorService> fileExecutors;
     private final static Logger LOGGER = LoggerFactory.getLogger(FileWriter.class);
+    private final Set<Path> loggedFiles = ConcurrentHashMap.newKeySet();
     private final CompositeStatistics statistics;
 
     private final Path outputDirectory;
@@ -85,11 +84,11 @@ public class FileWriter implements AutoCloseable {
     /**
      * Constructs a new FileWriter instance.
      *
-     * @param pathBuilder the path builder for creating output directory
+     * @param pathBuilder     the path builder for creating output directory
      * @param outputDirectory the target directory for output files
-     * @param filePrefix the prefix to prepend to filenames
-     * @param appendMode if true, appends to existing files; if false, overwrites files
-     * @param statistics to collect statistics
+     * @param filePrefix      the prefix to prepend to filenames
+     * @param appendMode      if true, appends to existing files; if false, overwrites files
+     * @param statistics      to collect statistics
      * @throws FileWriteException if outputDirectory or filePrefix are null
      */
     public FileWriter(PathBuilder pathBuilder, String outputDirectory, String filePrefix, boolean appendMode, CompositeStatistics statistics) {
@@ -98,6 +97,37 @@ public class FileWriter implements AutoCloseable {
         this.appendMode = appendMode;
         this.fileExecutors = createFileExecutors();
         this.statistics = statistics;
+
+        checkOutputDirectory();
+    }
+
+    /**
+     * Verifies and prepares the output directory for file operations.
+     *
+     * <p>This method performs the following operations:
+     * <ol>
+     *   <li>Creates the output directory and all necessary parent directories if they don't exist</li>
+     *   <li>Verifies write permissions for the output directory</li>
+     *   <li>Logs a confirmation message when the directory is ready</li>
+     * </ol>
+     *
+     * @throws FileWriteException if directory creation fails or write permissions are insufficient
+     */
+    private void checkOutputDirectory() {
+        try {
+            Files.createDirectories(outputDirectory);
+            if (!Files.isWritable(outputDirectory)) {
+                throw new FileWriteException(
+                        ServicesStringConstants.Messages.NO_WRITE_PERMISSIONS,
+                        outputDirectory.toString());
+            }
+
+            LOGGER.info(ServicesStringConstants.Messages.OUTPUT_DIRECTORY_READY, outputDirectory);
+        } catch (IOException e) {
+            throw new FileWriteException(
+                    ServicesStringConstants.Messages.FAILED_TO_CREATE_DIRECTORY,
+                    outputDirectory.toString(), e);
+        }
     }
 
     /**
@@ -162,6 +192,8 @@ public class FileWriter implements AutoCloseable {
             flushStrings();
         }
 
+        loggedFiles.forEach(path ->
+                LOGGER.info(ServicesStringConstants.Messages.WRITING_TO_FILE_FINISHED, path));
         firstFlushPerFile.clear();
         fileExecutors.values().forEach(ExecutorService::shutdown);
     }
@@ -176,9 +208,9 @@ public class FileWriter implements AutoCloseable {
      */
     protected Map<String, ExecutorService> createFileExecutors() {
         return Map.of(
-                OUTPUT_INTEGERS_FILENAME, Executors.newSingleThreadExecutor(),
-                OUTPUT_FLOATS_FILENAME,   Executors.newSingleThreadExecutor(),
-                OUTPUT_STRINGS_FILENAME,  Executors.newSingleThreadExecutor()
+                ServicesStringConstants.PathOptions.OUTPUT_INTEGERS_FILENAME, Executors.newSingleThreadExecutor(),
+                ServicesStringConstants.PathOptions.OUTPUT_FLOATS_FILENAME, Executors.newSingleThreadExecutor(),
+                ServicesStringConstants.PathOptions.OUTPUT_STRINGS_FILENAME, Executors.newSingleThreadExecutor()
         );
     }
 
@@ -193,35 +225,39 @@ public class FileWriter implements AutoCloseable {
      * Forces immediate write of all buffered integers.
      * <p>
      * Used automatically when batch is full or writer is closed.
+     *
      * @throws FileWriteException if write operation fails
      */
     private void flushIntegers() {
-        flush(integerBatch, OUTPUT_INTEGERS_FILENAME);
+        flush(integerBatch, ServicesStringConstants.PathOptions.OUTPUT_INTEGERS_FILENAME);
     }
 
     /**
      * Forces immediate write of all buffered floats.
      * <p>
      * Used automatically when batch is full or writer is closed.
+     *
      * @throws FileWriteException if write operation fails
      */
     private void flushFloats() {
-        flush(floatBatch, OUTPUT_FLOATS_FILENAME);
+        flush(floatBatch, ServicesStringConstants.PathOptions.OUTPUT_FLOATS_FILENAME);
     }
 
     /**
      * Forces immediate write of all buffered strings.
      * <p>
      * Used automatically when batch is full or writer is closed.
+     *
      * @throws FileWriteException if write operation fails
      */
     private void flushStrings() {
-        flush(stringBatch, OUTPUT_STRINGS_FILENAME);
+        flush(stringBatch, ServicesStringConstants.PathOptions.OUTPUT_STRINGS_FILENAME);
     }
 
     /**
      * Internal batch flush operation.
-     * @param batch Data to write
+     *
+     * @param batch    Data to write
      * @param filename Target filename (without prefix/path)
      */
     private <T> void flush(DataBatch<T> batch, String filename) {
@@ -232,23 +268,18 @@ public class FileWriter implements AutoCloseable {
 
     /**
      * Performs actual file write operation.
+     *
      * @param filePath Full target file path
-     * @param batch Data batch to write
+     * @param batch    Data batch to write
      * @throws FileWriteException if directory creation or file write fails
      */
     private <T> void writeBatchToFile(Path filePath, List<T> batch) {
         try {
-            var parentDir = filePath.getParent();
-            if (parentDir != null) {
-                Files.createDirectories(parentDir);
-                if (!Files.isWritable(parentDir)) {
-                    LOGGER.error("No write permissions for {}", filePath);
-                    throw new FileWriteException("No write permissions for directory", parentDir.toString());
-                }
+            if (loggedFiles.add(filePath)) {
+                LOGGER.info(ServicesStringConstants.Messages.WRITING_TO_FILE_STARTED, filePath);
             }
 
             var options = getOptions(filePath);
-
             try (var writer = Files.newBufferedWriter(filePath, options)) {
                 for (var item : batch) {
                     writer.write(item.toString());
@@ -256,13 +287,14 @@ public class FileWriter implements AutoCloseable {
                 }
             }
         } catch (IOException e) {
-            LOGGER.error("Failed to write to file {}", filePath);
-            throw new FileWriteException("Failed to write to file", filePath.toString(), e);
+            LOGGER.error(ServicesStringConstants.Messages.FAILED_TO_WRITE_TO_FILE, filePath);
+            throw new FileWriteException(ServicesStringConstants.Messages.FAILED_TO_WRITE_TO_FILE, filePath.toString(), e);
         }
     }
 
     /**
      * Determines file open options based on write mode.
+     *
      * @param filePath Target file path
      * @return Array of StandardOpenOption values
      */

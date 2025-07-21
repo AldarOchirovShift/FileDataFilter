@@ -29,7 +29,8 @@ public class FileProcessor {
      *   <li>No leading zeros (except for single zero)</li>
      * </ul>
      */
-    private static final Pattern INTEGER_PATTERN = Pattern.compile("^-?(0|[1-9][0-9]{0,18}(_[0-9]{3})*)$");
+    private static final Pattern INTEGER_PATTERN = Pattern.compile(ServicesStringConstants
+            .RegexPatterns.INTEGER_PATTERN);
 
     /**
      * Pattern for matching floating-point numbers in various formats.
@@ -41,9 +42,7 @@ public class FileProcessor {
      * </ul>
      */
     private static final Pattern FLOAT_PATTERN = Pattern.compile(
-            "^-?(0|[1-9]\\d*)[.,]\\d+([eE][-+]?\\d+)?$|" +
-                    "^-?Infinity$|" +
-                    "^NaN$",
+            ServicesStringConstants.RegexPatterns.FLOAT_PATTERN,
             Pattern.CASE_INSENSITIVE
     );
     private static final String MAX_LONG_STR = Long.toString(Long.MAX_VALUE);
@@ -68,17 +67,19 @@ public class FileProcessor {
      * Processes the input file line by line.
      *
      * @param inputFile path to the input file
-     * @throws IOException if an I/O error occurs while reading the file
+     * @throws IOException          if an I/O error occurs while reading the file
      * @throws NumberParseException if the string does not contain a parsable number
      */
     public void processFile(String inputFile) throws IOException {
         var inputPath = pathBuilder.buildInput(inputFile);
+        LOGGER.info(ServicesStringConstants.Messages.PROCESS_FILE_STARTED, inputPath);
         try (var reader = Files.newBufferedReader(inputPath)) {
             String line;
             while ((line = reader.readLine()) != null) {
                 processLine(line.trim());
             }
         }
+        LOGGER.info(ServicesStringConstants.Messages.PROCESS_FILE_FINISHED, inputPath);
     }
 
     /**
@@ -98,7 +99,7 @@ public class FileProcessor {
                 fileWriter.addString(line);
             }
         } catch (NumberParseException e) {
-            LOGGER.warn("Skipping malformed number in line: '{}'", line);
+            LOGGER.warn(ServicesStringConstants.Messages.MALFORMED_NUMBER_WARNING, line);
         }
     }
 
@@ -162,13 +163,15 @@ public class FileProcessor {
             return false;
         }
 
-        if (s.equalsIgnoreCase("NaN") || s.equalsIgnoreCase("Infinity")) {
+        if (s.equalsIgnoreCase(ServicesStringConstants.SpecialFloatOptions.NAN)
+                || s.equalsIgnoreCase(ServicesStringConstants.SpecialFloatOptions.INF)) {
             return true;
         }
 
         try {
             var d = Double.parseDouble(s.replace(',', '.'));
-            return !Double.isInfinite(d) || s.equalsIgnoreCase("-Infinity");
+            return !Double.isInfinite(d)
+                    || s.equalsIgnoreCase(ServicesStringConstants.SpecialFloatOptions.NEG_INF);
         } catch (NumberFormatException e) {
             return false;
         }
@@ -180,13 +183,13 @@ public class FileProcessor {
      * @param s the string to parse
      * @return parsed long value
      * @throws NumberParseException if the string cannot be parsed as a valid long integer
-     *                             (contains the original problematic value)
+     *                              (contains the original problematic value)
      */
     private long parseLong(String s) {
         try {
             return Long.parseLong(s.replace("_", ""));
         } catch (NumberFormatException e) {
-            throw new NumberParseException("Failed to parse double value", s, e);
+            throw new NumberParseException(ServicesStringConstants.Messages.FAILED_PARSE_LONG_VALUE, s, e);
         }
     }
 
@@ -197,21 +200,21 @@ public class FileProcessor {
      * @param s the string to parse
      * @return parsed double value
      * @throws NumberParseException if the string cannot be parsed as a valid double
-     *                             (contains the original problematic value)
+     *                              (contains the original problematic value)
      */
     private double parseDouble(String s) {
         try {
             s = s.replace(",", ".");
-            if (s.equalsIgnoreCase("Infinity")) {
+            if (s.equalsIgnoreCase(ServicesStringConstants.SpecialFloatOptions.INF)) {
                 return Double.POSITIVE_INFINITY;
-            } else if (s.equalsIgnoreCase("-Infinity")) {
+            } else if (s.equalsIgnoreCase(ServicesStringConstants.SpecialFloatOptions.NEG_INF)) {
                 return Double.NEGATIVE_INFINITY;
-            } else if (s.equalsIgnoreCase("NaN")) {
+            } else if (s.equalsIgnoreCase(ServicesStringConstants.SpecialFloatOptions.NAN)) {
                 return Double.NaN;
             }
             return Double.parseDouble(s);
         } catch (NumberFormatException e) {
-            throw new NumberParseException("Failed to parse double value", s, e);
+            throw new NumberParseException(ServicesStringConstants.Messages.FAILED_PARSE_DOUBLE_VALUE, s, e);
         }
     }
 }
