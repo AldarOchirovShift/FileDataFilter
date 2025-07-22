@@ -76,7 +76,7 @@ class PathBuilderTest {
         var result = pathBuilder.buildInput(windowsStylePath);
 
         assertTrue(result.isAbsolute());
-        assertTrue(result.toString().contains("subdir" + FileSystems.getDefault().getSeparator() + "file.txt"));
+        assertTrue(result.toString().contains("subdir\\file.txt"));
         assertTrue(result.toString().replace("\\", "/").contains("input" + "/subdir/file.txt"));
     }
 
